@@ -32,7 +32,7 @@ constexpr auto scores2 = makeArray([](std::string_view str) {
 	return mine + (res * 3); // { 0,3,6 }[res]
 });
 
-int sumTopKRanges(const char* filename, const std::array<int, 9>& scores) {
+int sumScores(const char* filename, const std::array<int, 9>& scores) {
 	return ranges::sum(
 		lines(filename)
 		| std::views::transform([&](std::string_view line) {
@@ -42,9 +42,9 @@ int sumTopKRanges(const char* filename, const std::array<int, 9>& scores) {
 }
 
 int main2() {
-	fmt::print("{}\n", sumTopKRanges("input/2test.txt", scores1)); // 15
-	fmt::print("{}\n", sumTopKRanges("input/2full.txt", scores1)); // 14297
-	fmt::print("{}\n", sumTopKRanges("input/2test.txt", scores2)); // 12
-	fmt::print("{}\n", sumTopKRanges("input/2full.txt", scores2)); // 10498
+	fmt::print("{}\n", sumScores("input/2test.txt", scores1)); // 15
+	fmt::print("{}\n", sumScores("input/2full.txt", scores1)); // 14297
+	fmt::print("{}\n", sumScores("input/2test.txt", scores2)); // 12
+	fmt::print("{}\n", sumScores("input/2full.txt", scores2)); // 10498
 	return 0;
 }
