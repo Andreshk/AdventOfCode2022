@@ -32,10 +32,10 @@ cppcoro::generator<T> lines(const char* filename, const T defaultVal) {
 
 // not std (!)
 namespace ranges {
-template <typename Rng>
-auto sum(Rng&& rng) {
-	std::ranges::range_value_t<Rng> res{};
-	for (auto&& x : rng) { res += std::forward<decltype(x)>(x); }
+template <typename Rng, typename Proj = std::identity>
+auto sum(Rng&& rng, Proj proj = {}) {
+	std::decay_t<std::indirect_result_t<Proj, std::ranges::iterator_t<Rng>>> res{}; // as per rangev3's fold
+	for (auto&& x : rng) { res += proj(std::forward<decltype(x)>(x)); }
 	return res;
 }
 }

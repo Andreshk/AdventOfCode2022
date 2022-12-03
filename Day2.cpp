@@ -1,6 +1,5 @@
 #include "Lines.h"
 #include <fmt/core.h>
-#include <ranges> // std::views::transform
 #include <array>
 
 // Given a functor that determines the score for a single string,
@@ -33,12 +32,9 @@ constexpr auto scores2 = makeArray([](std::string_view str) {
 });
 
 int sumScores(const char* filename, const std::array<int, 9>& scores) {
-	return ranges::sum(
-		lines(filename)
-		| std::views::transform([&](std::string_view line) {
-			return scores[3 * (line[0] - 'A') + (line[2] - 'X')];
-		})
-	);
+	return ranges::sum(lines(filename), [&](std::string_view line) {
+		return scores[3 * (line[0] - 'A') + (line[2] - 'X')];
+	});
 }
 
 int main2() {
