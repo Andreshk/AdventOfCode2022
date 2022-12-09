@@ -12,15 +12,16 @@ struct Coord {
 };
 // Pulls tail with 1 position, given that head was previously pulled with 1 position
 void pull(const Coord& head, Coord& tail) {
+	constexpr int offs[5][5] = {
+		{-1,-1,-1,-1,-1},
+		{-1, 0, 0, 0,-1},
+		{ 0, 0, 0, 0, 0},
+		{ 1, 0, 0, 0, 1},
+		{ 1, 1, 1, 1, 1} };
 	const int dx = (head.x - tail.x);
 	const int dy = (head.y - tail.y);
-	if (std::abs(dx) == 2) {
-		tail.x += (dx / 2); // shortcut for (dx - sgn(dx))
-		tail.y += std::clamp(dy, -1, 1); // clamp takes care of diagonal "moves"
-	} else if (std::abs(dy) == 2) {
-		tail.y += (dy / 2); // shortcut for (dy - sgn(dy))
-		tail.x += std::clamp(dx, -1, 1);
-	}
+	tail.x += offs[dx+2][dy+2];
+	tail.y += offs[dy+2][dx+2];
 	// The new dx,dy
 	assert(std::abs(head.x - tail.x) <= 1 && std::abs(head.y - tail.y) <= 1);
 }
