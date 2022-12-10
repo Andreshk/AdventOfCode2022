@@ -28,8 +28,8 @@ int day6(const char* filename, const int n) {
 			return rng.data() - line.data() + n;
 		}
 	}
-	return 0;
 #endif
+	return 0;
 }
 
 int main6() {
