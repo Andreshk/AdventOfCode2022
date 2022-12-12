@@ -43,7 +43,7 @@ public:
 			j = newOff % m;
 			return *this;
 		}
-		iterator& operator-=(const difference_type k) { return (*this -= (-k)); }
+		iterator& operator-=(const difference_type k) { return (*this += (-k)); }
 		iterator operator+(const difference_type k) const { return iterator{ *this } += k; }
 		iterator operator-(const difference_type k) const { return iterator{ *this } -= k; }
 		reference operator[](const difference_type k) const { return *(*this + k); }
@@ -83,5 +83,8 @@ public:
 		friend bool operator>=(const iterator& lhs, const iterator& rhs) { return !(lhs < rhs); }
 	};
 };
+// For better std::ranges algorithms compatibility
+template<> inline constexpr bool std::ranges::enable_view<IntPairs> = true;
+template<> inline constexpr bool std::ranges::enable_borrowed_range<IntPairs> = true;
 // Sanity check
 static_assert(std::ranges::random_access_range<IntPairs>);
