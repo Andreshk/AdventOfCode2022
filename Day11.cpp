@@ -41,17 +41,22 @@ std::vector<Monkey> parse2(const char* filename) {
 	return monkeys;
 }
 
-int64_t day11(const char* filename, const int numRounds, const int div) {
+int64_t day11(const char* filename, const int numRounds, const bool part1) {
 	std::vector<Monkey> monkeys = parse2(filename);
 	const int mult = ranges::product(monkeys, &Monkey::test);
 	for (int round = 0; round < numRounds; ++round) {
 		for (Monkey& m : monkeys) {
 			for (const int64_t old : m.items) {
 				const int64_t arg = (m.arg == -1 ? old : m.arg);
-				const int worry = int(((m.op == '+' ? old + arg : old * arg) / div) % mult); // Downcasting after % mult is ok
+				int64_t worry = (m.op == '+' ? old + arg : old * arg);
+				if (part1) {
+					worry /= 3;
+				} else {
+					worry %= mult;
+				}
 				const int idx = m.idxs[(worry % m.test == 0)];
 				assert(&monkeys[idx] != &m); // Do not reinsert into a vector while traversing it (!)
-				monkeys[idx].items.push_back(worry);
+				monkeys[idx].items.push_back(int(worry)); // Downcasting after % mult is safe
 				++m.numInsp;
 			}
 			m.items.clear();
@@ -62,9 +67,9 @@ int64_t day11(const char* filename, const int numRounds, const int div) {
 }
 
 int main11() {
-	fmt::print("{}\n", day11("input/11test.txt", 20, 3)); // 10605
-	fmt::print("{}\n", day11("input/11full.txt", 20, 3)); // 56120
-	fmt::print("{}\n", day11("input/11test.txt", 10000, 1)); // 2713310158
-	fmt::print("{}\n", day11("input/11full.txt", 10000, 1)); // 24389045529
+	fmt::print("{}\n", day11("input/11test.txt", 20, true)); // 10605
+	fmt::print("{}\n", day11("input/11full.txt", 20, true)); // 56120
+	fmt::print("{}\n", day11("input/11test.txt", 10000, false)); // 2713310158
+	fmt::print("{}\n", day11("input/11full.txt", 10000, false)); // 24389045529
 	return 0;
 }
