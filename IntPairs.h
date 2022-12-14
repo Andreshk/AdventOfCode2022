@@ -5,7 +5,12 @@
 
 // The value, returned from dereferencing an IntPairs::iterator
 // Intentionally minimalistic as possible - best used via structured bindings immediately after introducing.
-struct IntPair { int i, j; };
+struct IntPair {
+	int i, j;
+	friend auto operator<=>(const IntPair&, const IntPair&) = default;
+	IntPair& operator+=(const IntPair& rhs) { i += rhs.i; j += rhs.j; return *this; }
+	IntPair operator+(const IntPair& rhs) const { return IntPair{ *this } += rhs; }
+};
 
 // Range of all integer pairs (i,j) such that 0<=i<n and 0<=j<n, ordered lexicographically for convenience.
 // Fully models the random_access_range concept - to be used in standard ranges algorithms.
