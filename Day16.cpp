@@ -111,7 +111,7 @@ void day16(const char* filename) {
 	// Part2: try every possible disjoint pair of subsets for the player & the elephant to visit
 	log = {};
 	start = std::chrono::system_clock::now();
-	const int part2 = std::ranges::max(std::views::transform(std::views::iota(0, (1 << (rates.size() - 1))),
+	const int part2 = std::ranges::max(std::views::transform(std::views::iota(0, (1 << (rates.size() - 2))),
 		[&](const uint32_t visited) {
 			std::map<Point, int> M1, M2;
 			return solve(rates, dists, M1, log, Point{ 0, (visited << 1) | 1, 26 })
