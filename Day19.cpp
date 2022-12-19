@@ -7,7 +7,7 @@
 #include <map>
 #include <thread>
 #include <chrono> // for debugging purposes only
-#include <mutex> // std::mutex, for debugging purposes only
+#include <mutex> // for debugging purposes only
 #include <algorithm> // std::ranges::all_of
 
 struct Blueprint {
@@ -39,7 +39,7 @@ bool enough(const std::array<int, 3>& xs, const std::array<int, 3>& ys) {
 	return (xs[0] >= ys[0] && xs[1] >= ys[1] && xs[2] >= ys[2]); // This is all_of(iota(0,3),...)
 }
 // We'll calculate the maximum value for a given time, resource & robot counts
-// Note that geodes are not counted as a material, since nothing depends on them - th erobots just produce & dump them
+// Note that geodes are not counted as a material, since nothing depends on them - the robots just produce & dump them
 struct Point {
 	std::array<int, 3> resources;
 	std::array<int, 4> robots;
@@ -59,8 +59,7 @@ int solve(const Blueprint& b, std::vector<std::map<Point, int>>& M, const Point 
 			if (enough(p.resources, b.reqs[i])) {
 				Point p0 = p;
 				for (int k = 0; k < 3; ++k) {
-					p0.resources[k] -= b.reqs[i][k];
-					p0.resources[k] = std::min(p0.resources[k] + p0.robots[k], b.limits[k]);
+					p0.resources[k] = std::min(p0.resources[k] - b.reqs[i][k] + p0.robots[k], b.limits[k]);
 				}
 				// Despite the material limits, robot counts are correct
 				if (i < 4) { ++p0.robots[i]; } // The last "option" is not to build any robot at all, just collect
@@ -95,10 +94,7 @@ int day19(const char* filename, const int time, const bool part1) {
 	}
 	for (auto& t : ths) { t.join(); }
 	if (part1) {
-		// This is sum(zip_transform(iota(0, k), qs, ...))
-		int res = 0;
-		for (int idx = 0; idx < k; ++idx) { res += (idx + 1) * qs[idx]; }
-		return res;
+		return ranges::sum(std::views::iota(0, k), [&](int idx) { return (idx + 1) * qs[idx]; });
 	} else {
 		return ranges::product(qs);
 	}
