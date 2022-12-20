@@ -30,7 +30,7 @@ int64_t day20(const char* filename, const int64_t key, const int numRuns) {
 	}
 	const int pos = int(std::ranges::find(xs, 0) - xs.begin());
 	assert(pos != n);
-	return ranges::sum(std::views::iota(1, 4), [&](int i) { return xs[pos + 1000 * i]; });
+	return ranges::sum(std::views::iota(1, 4), [&](int i) { return xs[(pos + 1000 * i) % n]; });
 }
 
 int main20() {
