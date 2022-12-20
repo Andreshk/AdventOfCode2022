@@ -35,15 +35,19 @@ struct Blueprint {
 };
 
 // Per-component >= for arrays
-bool enough(const std::array<int, 3>& xs, const std::array<int, 3>& ys) {
+bool enough(const std::array<uint8_t, 3>& xs, const std::array<int, 3>& ys) {
 	return (xs[0] >= ys[0] && xs[1] >= ys[1] && xs[2] >= ys[2]); // This is all_of(iota(0,3),...)
 }
 // We'll calculate the maximum value for a given time, resource & robot counts
-// Note that geodes are not counted as a material, since nothing depends on them - the robots just produce & dump them
-struct Point {
-	std::array<int, 3> resources;
-	std::array<int, 4> robots;
-	auto operator<=>(const Point&) const = default;
+// Geodes are not counted as a resource, since nothing depends on them - the robots just produce & dump them,
+// so they don't take part in the "state"
+struct alignas(uint64_t) Point {
+	std::array<uint8_t, 3> resources;
+	std::array<uint8_t, 4> robots;
+	uint8_t pad = 0; // Undeterminate padding will mess up the bit_cast below (!)
+	friend auto operator<=>(const Point& lhs, const Point& rhs) {
+		return (std::bit_cast<uint64_t>(lhs) <=> std::bit_cast<uint64_t>(rhs));
+	}
 };
 int solve(const Blueprint& b, std::vector<std::map<Point, int>>& M, const Point p, const int time) {
 	assert(time >= 1);
@@ -73,10 +77,10 @@ int solve(const Blueprint& b, std::vector<std::map<Point, int>>& M, const Point 
 
 int day19(const char* filename, const int time, const bool part1) {
 	const std::vector<Blueprint> blueprints{ std::from_range, std::views::transform(lines(filename), &Blueprint::parse) };
+	const int k = int(part1 ? blueprints.size() : std::min(3ull, blueprints.size()));
+	const size_t pad = fmt::formatted_size("{}", k); // for visualization only
 	std::vector<std::thread> ths;
 	std::mutex fmtMutex;
-	const int k = int(part1 ? blueprints.size() : std::min(3ull, blueprints.size()));
-	const size_t pad = fmt::formatted_size("{}", k - 1); // for visualization only
 	std::vector<int> qs(k, 0);
 	for (int idx = 0; idx < k; ++idx) {
 		ths.emplace_back([&](const int idx) {
@@ -87,7 +91,7 @@ int day19(const char* filename, const int time, const bool part1) {
 			const auto s = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
 			{
 				std::lock_guard l{ fmtMutex };
-				fmt::print("idx={:<{}} q={} (time={}ms, cache={})\n", idx, pad, q, s.count(), ranges::sum(M, &std::map<Point, int>::size));
+				fmt::print("idx={:<{}} q={} (time={}ms, cache={})\n", idx + 1, pad, q, s.count(), ranges::sum(M, &std::map<Point, int>::size));
 			}
 			qs[idx] = q;
 		}, idx);
