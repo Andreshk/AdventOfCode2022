@@ -3,41 +3,55 @@
 #include <fmt/core.h>
 #include <charconv>
 
-// All 4 functions take an edge position & return the new position+direction pair
+// All 4 functions take an edge position + intended direction & return the new (position,direction) pair
+// Note that they are hardcoded to the shapes & sizes of the example & full input - but these are the same for all users :)
 
 //     1
 // 2 3 4
 //     5 6
 // Simple wrap-around in the opposite direction on the example input
-std::tuple<IntPair, int> testWrap(const IntPair pos) {
-	if (pos.i == 0) { // Up from 1
-		return { {11,pos.j},3 };
-	} else if (pos.j == 8 && pos.i < 4) { // Left from 1
-		return { {pos.i,11},2 };
-	} else if (pos.i == 4 && pos.j < 4) { // Up from 2
-		return { {7,pos.j},3 };
-	} else if (pos.i == 4 && pos.j >= 4 && pos.j < 8) { // Up from 3
-		return { {7,pos.j},3 };
-	} else if (pos.j == 0) { // Left from 2
-		return { {pos.i,11},2 };
-	} else if (pos.i == 7 && pos.j < 4) { // Down from 2
-		return { {4,pos.j},1 };
-	} else if (pos.i == 7 && pos.j >= 4 && pos.j < 8) { // Down from 3
-		return { {4,pos.j},1 };
-	} else if (pos.j == 8 && pos.i >= 8) { // Left from 5
-		return { {pos.i,15},2 };
-	} else if (pos.i == 11 && pos.j < 12) { // Down from 5
-		return { {0,pos.j},1 };
-	} else if (pos.i == 11 && pos.j >= 12) { // Down from 6
-		return { {8,pos.j},1 };
-	} else if (pos.j == 15) { // Right from 6
-		return { {pos.i,8},0 };
-	} else if (pos.i == 8) { // Up from 6
-		return { {11,pos.j},3 };
-	} else if (pos.j == 11 && pos.i >= 4 && pos.i < 8) { // Right from 4
-		return { {pos.i,0},0 };
-	} else if (pos.j == 11 && pos.i < 4) { // Right from 1
-		return { {pos.i,8},0 };
+std::pair<IntPair, int> testWrap(const IntPair pos, const int dir) {
+	switch (dir) {
+	case 0: {
+		if (pos.j == 11 && pos.i < 4) { // Right from 1
+			return { {pos.i,8},0 };
+		} else if (pos.j == 11 && pos.i >= 4 && pos.i < 8) { // Right from 4
+			return { {pos.i,0},0 };
+		} else if (pos.j == 15) { // Right from 6
+			return { {pos.i,8},0 };
+		}
+	} break;
+	case 1: {
+		if (pos.i == 7 && pos.j < 4) { // Down from 2
+			return { {4,pos.j},1 };
+		} else if (pos.i == 7 && pos.j >= 4 && pos.j < 8) { // Down from 3
+			return { {4,pos.j},1 };
+		} else if (pos.i == 11 && pos.j < 12) { // Down from 5
+			return { {0,pos.j},1 };
+		} else if (pos.i == 11 && pos.j >= 12) { // Down from 6
+			return { {8,pos.j},1 };
+		}
+	} break;
+	case 2: {
+		if (pos.j == 8 && pos.i < 4) { // Left from 1
+			return { {pos.i,11},2 };
+		} else if (pos.j == 0) { // Left from 2
+			return { {pos.i,11},2 };
+		} else if (pos.j == 8 && pos.i >= 8) { // Left from 5
+			return { {pos.i,15},2 };
+		}
+	} break;
+	case 3: {
+		if (pos.i == 0 ) { // Up from 1
+			return { {11,pos.j},3 };
+		} else if (pos.i == 4 && pos.j < 4) { // Up from 2
+			return { {7,pos.j},3 };
+		} else if (pos.i == 4 && pos.j >= 4 && pos.j < 8) { // Up from 3
+			return { {7,pos.j},3 };
+		} else if (pos.i == 8) { // Up from 6
+			return { {11,pos.j},3 };
+		}
+	} break;
 	}
 	assert(false); return {};
 }
@@ -46,35 +60,48 @@ std::tuple<IntPair, int> testWrap(const IntPair pos) {
 // 2 3 4
 //     5 6
 // Wrap according to the folded example input
-std::tuple<IntPair,int> testFold(const IntPair pos) {
-	if (pos.i == 0) { // Up from 1
-		return { {4,11 - pos.j},1 };
-	} else if (pos.j == 8 && pos.i < 4) { // Left from 1
-		return { {8,4 + pos.i},1 };
-	} else if (pos.i == 4 && pos.j < 4) { // Up from 2
-		return { {0,11 - pos.j},1 };
-	} else if (pos.i == 4 && pos.j >= 4 && pos.j < 8) { // Up from 3
-		return { {pos.j - 4,8},0 };
-	} else if (pos.j == 0) { // Left from 2
-		return { {11,11 - pos.i},3 };
-	} else if (pos.i == 7 && pos.j < 4) { // Down from 2
-		return { {11,15 - pos.i},2 };
-	} else if (pos.i == 7 && pos.j >= 4 && pos.j < 8) { // Down from 3
-		return { {8 + 11 - pos.j,8},0 };
-	} else if (pos.j == 8 && pos.i >= 8) { // Left from 5
-		return { {7,19 - pos.i},3 };
-	} else if (pos.i == 11 && pos.j < 12) { // Down from 5
-		return { {7,11 - pos.j},3 };
-	} else if (pos.i == 11 && pos.j >= 12) { // Down from 6
-		return { {15 - pos.j,0},0 };
-	} else if (pos.j == 15) { // Right from 6
-		return { {11 - pos.i,11},2 };
-	} else if (pos.i == 8) { // Up from 6
-		return { {19 - pos.j,11},2 };
-	} else if (pos.j == 11 && pos.i >= 4 && pos.i < 8) { // Right from 4
-		return { {8,19 - pos.i},1 };
-	} else if (pos.j == 11 && pos.i < 4) { // Right from 1
-		return { {15 - pos.i,15},2 };
+std::pair<IntPair,int> testFold(const IntPair pos, const int dir) {
+	switch (dir) {
+	case 0: {
+		if (pos.j == 11 && pos.i < 4) { // Right from 1
+			return { {15 - pos.i,15},2 };
+		} else if (pos.j == 11 && pos.i >= 4 && pos.i < 8) { // Right from 4
+			return { {8,19 - pos.i},1 };
+		} else if (pos.j == 15) { // Right from 6
+			return { {11 - pos.i,11},2 };
+		}
+	} break;
+	case 1: {
+		if (pos.i == 7 && pos.j < 4) { // Down from 2
+			return { {11,15 - pos.i},2 };
+		} else if (pos.i == 7 && pos.j >= 4 && pos.j < 8) { // Down from 3
+			return { {8 + 11 - pos.j,8},0 };
+		} else if (pos.i == 11 && pos.j < 12) { // Down from 5
+			return { {7,11 - pos.j},3 };
+		} else if (pos.i == 11 && pos.j >= 12) { // Down from 6
+			return { {15 - pos.j,0},0 };
+		}
+	} break;
+	case 2: {
+		if (pos.j == 8 && pos.i < 4) { // Left from 1
+			return { {8,4 + pos.i},1 };
+		} else if (pos.j == 0) { // Left from 2
+			return { {11,11 - pos.i},3 };
+		} else if (pos.j == 8 && pos.i >= 8) { // Left from 5
+			return { {7,19 - pos.i},3 };
+		}
+	} break;
+	case 3: {
+		if (pos.i == 0) { // Up from 1
+			return { {4,11 - pos.j},1 };
+		} else if (pos.i == 4 && pos.j < 4) { // Up from 2
+			return { {0,11 - pos.j},1 };
+		} else if (pos.i == 4 && pos.j >= 4 && pos.j < 8) { // Up from 3
+			return { {pos.j - 4,8},0 };
+		} else if (pos.i == 8) { // Up from 6
+			return { {19 - pos.j,11},2 };
+		}
+	} break;
 	}
 	assert(false); return {};
 }
@@ -83,36 +110,49 @@ std::tuple<IntPair,int> testFold(const IntPair pos) {
 //   3
 // 4 5
 // 6
-// Simple wrap-around in the opposite direction on _MY_ full input
-std::tuple<IntPair, int> fullWrap(const IntPair pos) {
-	if (pos.i == 0 && pos.j < 100) { // Up from 1
-		return { {149,pos.j},3 };
-	} else if (pos.j == 50 && pos.i < 50) { // Left from 1
-		return { {pos.i,149},2 };
-	} else if (pos.j == 50 && pos.i >= 50 && pos.i < 100) { // Left from 3
-		return { {pos.i,99},2 };
-	} else if (pos.i == 100 && pos.j < 50) { // Up from 4
-		return { {199,pos.j},3 };
-	} else if (pos.j == 0 && pos.i < 150) { // Left from 4
-		return { {pos.i,99},2 };
-	} else if (pos.j == 0 && pos.i >= 150) { // Left from 6
-		return { {pos.i,49},2 };
-	} else if (pos.i == 199) { // Down from 6
-		return { {100,pos.j},1 };
-	} else if (pos.j == 49 && pos.i >= 150) { // Right from 6
-		return { {pos.i,0},0 };
-	} else if (pos.i == 149 && pos.j >= 50) { // Down from 5
-		return { {0,pos.j},1 };
-	} else if (pos.j == 99 && pos.i >= 100) { // Right from 5
-		return { {pos.i,0},0 };
-	} else if (pos.j == 99 && pos.i >= 50 && pos.i < 100) { // Right from 3
-		return { {pos.i,50},0 };
-	} else if (pos.i == 49 && pos.j > 100) { // Down from 2
-		return { {0,pos.j},1 };
-	} else if (pos.j == 149) { // Right from 2
-		return { {pos.i,50},0 };
-	} else if (pos.i == 0 && pos.j >= 100) { // Up from 2
-		return { {49,pos.j},3 };
+// Simple wrap-around in the opposite direction on the full input
+std::pair<IntPair, int> fullWrap(const IntPair pos, const int dir) {
+	switch (dir) {
+	case 0: {
+		if (pos.j == 149) { // Right from 2
+			return { {pos.i,50},0 };
+		} else if (pos.j == 99 && pos.i >= 50 && pos.i < 100) { // Right from 3
+			return { {pos.i,50},0 };
+		} else if (pos.j == 99 && pos.i >= 100) { // Right from 5
+			return { {pos.i,0},0 };
+		} else if (pos.j == 49 && pos.i >= 150) { // Right from 6
+			return { {pos.i,0},0 };
+		}
+	} break;
+	case 1: {
+		if (pos.i == 49 && pos.j > 100) { // Down from 2
+			return { {0,pos.j},1 };
+		} else if (pos.i == 149 && pos.j >= 50) { // Down from 5
+			return { {0,pos.j},1 };
+		} else if (pos.i == 199) { // Down from 6
+			return { {100,pos.j},1 };
+		}
+	} break;
+	case 2: {
+		if (pos.j == 50 && pos.i < 50) { // Left from 1
+			return { {pos.i,149},2 };
+		} else if (pos.j == 50 && pos.i >= 50 && pos.i < 100) { // Left from 3
+			return { {pos.i,99},2 };
+		} else if (pos.j == 0 && pos.i < 150) { // Left from 4
+			return { {pos.i,99},2 };
+		} else if (pos.j == 0 && pos.i >= 150) { // Left from 6
+			return { {pos.i,49},2 };
+		}
+	} break;
+	case 3: {
+		if (pos.i == 0 && pos.j < 100) { // Up from 1
+			return { {149,pos.j},3 };
+		} else if (pos.i == 0 && pos.j >= 100) { // Up from 2
+			return { {49,pos.j},3 };
+		} else if (pos.i == 100 && pos.j < 50) { // Up from 4
+			return { {199,pos.j},3 };
+		}
+	} break;
 	}
 	assert(false); return {};
 }
@@ -121,41 +161,54 @@ std::tuple<IntPair, int> fullWrap(const IntPair pos) {
 //   3
 // 4 5
 // 6
-// Wrap according to _MY_ folded full input
-std::tuple<IntPair, int> fullFold(const IntPair pos) {
-	if (pos.i == 0 && pos.j < 100) { // Up from 1
-		return { {150 + pos.j - 50,0},0 };
-	} else if (pos.j == 50 && pos.i < 50) { // Left from 1
-		return { {149 - pos.i,0},0 };
-	} else if (pos.j == 50 && pos.i >= 50 && pos.i < 100) { // Left from 3
-		return { {100,pos.i - 50},1 };
-	} else if (pos.i == 100 && pos.j < 50) { // Up from 4
-		return { {50 + pos.j,50},0 };
-	} else if (pos.j == 0 && pos.i < 150) { // Left from 4
-		return { {49 - (pos.i - 100),50},0 };
-	} else if (pos.j == 0 && pos.i >= 150) { // Left from 6
-		return { {0,50 + (pos.i - 150)},1 };
-	} else if (pos.i == 199) { // Down from 6
-		return { {0,100 + pos.j},1 };
-	} else if (pos.j == 49 && pos.i >= 150) { // Right from 6
-		return { {149,50 + (pos.i - 150)},3 };
-	} else if (pos.i == 149 && pos.j >= 50) { // Down from 5
-		return { {150 + (pos.j - 50),49},2 };
-	} else if (pos.j == 99 && pos.i >= 100) { // Right from 5
-		return { {149 - pos.i,149},2 };
-	} else if (pos.j == 99 && pos.i >= 50 && pos.i < 100) { // Right from 3
-		return { {49,50 + pos.i},3 };
-	} else if (pos.i == 49 && pos.j > 100) { // Down from 2
-		return { {pos.j - 50,99},2 };
-	} else if (pos.j == 149) { // Right from 2
-		return { {149 - pos.i,99},2 };
-	} else if (pos.i == 0 && pos.j >= 100) { // Up from 2
-		return { {199, pos.j - 100},3 };
+// Wrap according to the folded full input
+std::pair<IntPair, int> fullFold(const IntPair pos, const int dir) {
+	switch (dir) {
+	case 0: {
+		if (pos.j == 149) { // Right from 2
+			return { {149 - pos.i,99},2 };
+		} else if (pos.j == 99 && pos.i >= 50 && pos.i < 100) { // Right from 3
+			return { {49,50 + pos.i},3 };
+		} else if (pos.j == 99 && pos.i >= 100) { // Right from 5
+			return { {149 - pos.i,149},2 };
+		} else if (pos.j == 49 && pos.i >= 150) { // Right from 6
+			return { {149,50 + (pos.i - 150)},3 };
+		}
+	} break;
+	case 1: {
+		if (pos.i == 49 && pos.j > 100) { // Down from 2
+			return { {pos.j - 50,99},2 };
+		} else if (pos.i == 149 && pos.j >= 50) { // Down from 5
+			return { {150 + (pos.j - 50),49},2 };
+		} else if (pos.i == 199) { // Down from 6
+			return { {0,100 + pos.j},1 };
+		}
+	} break;
+	case 2: {
+		if (pos.j == 50 && pos.i < 50) { // Left from 1
+			return { {149 - pos.i,0},0 };
+		} else if(pos.j == 50 && pos.i >= 50 && pos.i < 100) { // Left from 3
+			return { {100,pos.i - 50},1 };
+		} else if (pos.j == 0 && pos.i < 150) { // Left from 4
+			return { {49 - (pos.i - 100),50},0 };
+		} else if(pos.j == 0 && pos.i >= 150) { // Left from 6
+			return { {0,50 + (pos.i - 150)},1 };
+		}
+	} break;
+	case 3: {
+		if (pos.i == 0 && pos.j < 100) { // Up from 1
+			return { {150 + pos.j - 50,0},0 };
+		} else if (pos.i == 0 && pos.j >= 100) { // Up from 2
+			return { {199, pos.j - 100},3 };
+		} else if (pos.i == 100 && pos.j < 50) { // Up from 4
+			return { {50 + pos.j,50},0 };
+		} 
+	} break;
 	}
 	assert(false); return {};
 }
 
-int day22(const char* filename, std::tuple<IntPair, int>(*wrapFn)(const IntPair)) {
+int day22(const char* filename, std::pair<IntPair, int>(*wrapFn)(const IntPair, const int)) {
 	std::vector<std::string> map{ std::from_range, std::views::as_rvalue(lines(filename)) };
 	const std::string path = std::move(map.back());
 	map.pop_back(); map.pop_back();
@@ -173,11 +226,9 @@ int day22(const char* filename, std::tuple<IntPair, int>(*wrapFn)(const IntPair)
 		int steps = 0;
 		from = std::from_chars(from, to, steps).ptr;
 		for (int i = 0; i < steps; ++i) {
-			IntPair next = pos + dp[dir];
-			int nextDir = dir;
-			if (!valid(next)) {
-				std::tie(next, nextDir) = wrapFn(pos);
-			}
+			const auto [next, nextDir] = valid(pos + dp[dir])
+				? std::make_pair(pos + dp[dir], dir)
+				: wrapFn(pos, dir);
 			assert(valid(next));
 			if (map[next.i][next.j] != '#') {
 				pos = next;
