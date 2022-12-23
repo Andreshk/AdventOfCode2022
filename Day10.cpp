@@ -1,6 +1,7 @@
 #include "Lines.h"
 #include <fmt/core.h>
 #include <fmt/ranges.h>
+#include <charconv>
 #include <array>
 
 void day10(const char* filename) {
